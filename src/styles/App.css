@@ -1,0 +1,44 @@
+body {
+  margin: 0;
+  font-family: 'Bungee Tint', cursive; /* Default font for other text */
+  background: url('/public/images/background.png') no-repeat center center fixed;
+  background-size: cover;
+  overflow: hidden; /* Prevent scrolling */
+}
+
+.app {
+  text-align: center;
+  padding: 0;
+  color: white;
+  position: relative;
+  height: 100vh; /* Full screen height, no more than the viewport */
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start; /* Align items to the top */
+  align-items: center; /* Center content horizontally */
+}
+
+
+.boat-container {
+  position: absolute;
+  bottom: 10%; /* Place the container at the bottom 20% of the page */
+  left: 50%; /* Center horizontally */
+  transform: translateX(-50%); /* Center the container */
+  z-index: 3; /* Ensure it's above other content */
+  width: 200px; /* Set the container width */
+  height: auto; /* Maintain aspect ratio */
+}
+
+.faces-container {
+  position: absolute;
+  bottom: 20px; /* Adjust spacing from the bottom */
+  left: 50%; /* Center horizontally */
+  transform: translateX(-50%); /* Center alignment */
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.8); /* Optional: Background for visibility */
+  border-radius: 10px; /* Rounded edges */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Optional: Shadow for aesthetics */
+}

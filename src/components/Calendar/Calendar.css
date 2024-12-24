@@ -1,0 +1,164 @@
+.calendar {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.539);
+  border-radius: 10px;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  width: 90%;
+  max-width: 800px;
+  position: absolute;
+  top: 60%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: 'Bungee Shade', cursive;
+  color: #2f4f4f;
+  border: 3px solid black;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+  grid-auto-rows: 1fr;
+  height: 300px;
+  box-sizing: border-box;
+}
+
+.calendar-day.empty {
+  background: transparent;
+  border: none;
+}
+
+.calendar-day {
+  position: relative;
+  background: #f8f9fa;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  text-align: center;
+  padding: 8px;
+  transition: background 0.3s, transform 0.3s;
+  border: 3px solid black;
+}
+
+.calendar-day:hover {
+  background: #ffefd5;
+  transform: scale(1.03);
+}
+
+.calendar-day.today {
+  color: #2f4f4f;
+  background-color: rgba(255, 247, 0, 0.36);
+  font-weight: bold;
+}
+
+.calendar-day.booked {
+  background: #90ee90;
+  color: #2f4f4f;
+}
+
+.date-label {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  font-size: 1.2em;
+  font-weight: bold;
+}
+
+.booking-face {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+}
+
+.cancel-button {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background: red;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 10px;
+  height: 10px;
+  font-size: 7px;
+  font-weight: bold;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.cancel-button:hover {
+  background: darkred;
+}
+
+
+.cancel-button:hover {
+  background: darkred;
+}
+
+.calendar-days-of-week {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+  margin-bottom: 10px;
+  font-weight: bold;
+  text-align: center;
+  color: #555;
+}
+
+.day-of-week {
+  padding: 5px 0;
+  background: #f0f0f0;
+  border-radius: 5px;
+  border: 3px solid black;
+}
+
+.calendar-day.placeholder {
+  background: transparent;
+  color: transparent;
+  border-color: transparent;
+  pointer-events: none;
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  font-size: 1.5rem;
+  font-weight: bold;
+  letter-spacing: 2px;
+  color: #333;
+  text-transform: uppercase;
+}
+
+.calendar-header .header-text {
+  background-color: white;
+  padding: 5px 10px;
+  border-radius: 5px;
+  margin: 10px;
+  border: 3px solid black;
+}
+
+.calendar-header button {
+  font-size: 1rem;
+  padding: 5px 10px;
+  background-color: #ff6961;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.calendar-header button:hover {
+  background-color: #e55a50;
+}
