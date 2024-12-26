@@ -18,6 +18,17 @@ const DraggableFaces = ({ faces }) => {
     return img;
   };
 
+  // Helper function to find the nearest ancestor with data-drop-target="true"
+  const findDropTarget = (element) => {
+    while (element && element !== document.body) {
+      if (element.dataset.dropTarget === 'true') {
+        return element;
+      }
+      element = element.parentElement;
+    }
+    return null;
+  };
+
   // Handler for drag start (desktop)
   const handleDragStart = (event, face) => {
     const dragData = JSON.stringify(face);
@@ -47,7 +58,7 @@ const DraggableFaces = ({ faces }) => {
 
   // Handler for touch start (mobile)
   const handleTouchStart = (event, face) => {
-    event.preventDefault(); // Prevent default touch actions
+    // Removed event.preventDefault() to avoid the passive listener error
     const touch = event.touches[0];
     const dragData = JSON.stringify(face);
     dragDataRef.current = dragData;
@@ -72,9 +83,12 @@ const DraggableFaces = ({ faces }) => {
     const target = document.elementFromPoint(touch.clientX, touch.clientY);
     console.log('Touch End:', touch.clientX, touch.clientY, target);
 
-    if (target?.dataset.dropTarget === 'true' && dragDataRef.current) {
+    // Use the helper function to find the drop target
+    const dropTarget = findDropTarget(target);
+
+    if (dropTarget && dragDataRef.current) {
       const dropEvent = new CustomEvent('drop', { detail: dragDataRef.current, bubbles: true });
-      target.dispatchEvent(dropEvent);
+      dropTarget.dispatchEvent(dropEvent);
     }
 
     // Clean up the preview

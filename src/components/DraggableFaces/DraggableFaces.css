@@ -1,3 +1,5 @@
+/* DraggableFaces.css */
+
 /* Container for draggable faces */
 .faces-container,
 .faces-bar {
@@ -33,6 +35,7 @@
 .face {
   cursor: grab;
   transition: transform 0.2s ease;
+  touch-action: none; /* Prevent default touch actions like scrolling */
 }
 
 .face:active {
@@ -42,11 +45,17 @@
 
 .drag-preview {
   position: absolute;
-  pointer-events: none;
+  pointer-events: none; /* Ensure drag preview doesn't block interactions */
   transform: scale(1.1) translate(-50%, -50%); /* Center the preview on cursor/touch */
   z-index: 1000; /* Ensure it appears above all other elements */
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2); /* Optional shadow for depth */
   opacity: 0.8; /* Slight transparency for better visual feedback */
+  transition: left 0.1s ease, top 0.1s ease; /* Smooth movement */
+}
+
+/* Hover effect for better visual feedback */
+.face:hover {
+  transform: scale(1.05);
 }
 
 /* Responsive Design */
@@ -74,8 +83,4 @@
     padding: 5px 10px;
     gap: 8px;
   }
-}
-
-.face:hover {
-  transform: scale(1.05);
 }

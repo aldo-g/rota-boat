@@ -57,14 +57,13 @@ const Calendar = () => {
     };
   };
 
-  // Handle touch events for dragging
-  const handleTouchMove = useCallback(
+  // Handle pointer move with throttling
+  const handlePointerMove = useCallback(
     throttle((event) => {
-      const touch = event.touches[0];
-      const target = document.elementFromPoint(touch.clientX, touch.clientY);
-      console.log('Touch Move:', touch.clientX, touch.clientY, target);
+      const target = document.elementFromPoint(event.clientX, event.clientY);
+      console.log('Pointer Move:', event.clientX, event.clientY, target);
 
-      if (target && target.classList.contains('calendar-day')) {
+      if (target && target.classList.contains('calendar-day') && target.dataset.dropTarget === 'true') {
         // Remove drag-over from previous cell
         if (currentDragOver.current && currentDragOver.current !== target) {
           currentDragOver.current.classList.remove('drag-over');
@@ -82,22 +81,21 @@ const Calendar = () => {
           currentDragOver.current = null;
         }
       }
-    }, 100),
+    }, 100), // Adjust the throttle limit as needed
     []
   );
 
-  const handleTouchEnd = async (event) => {
-    const touch = event.changedTouches[0];
-    const target = document.elementFromPoint(touch.clientX, touch.clientY);
-    console.log('Touch End:', touch.clientX, touch.clientY, target);
+  const handlePointerUp = async (event) => {
+    const target = document.elementFromPoint(event.clientX, event.clientY);
+    console.log('Pointer Up:', event.clientX, event.clientY, target);
 
-    if (target && target.dataset.dropTarget === 'true') {
+    if (target?.dataset.dropTarget === 'true') {
       const formattedDate = target.getAttribute('data-date');
       const face = touchData.current;
 
       if (formattedDate && face) {
         try {
-          await setDoc(doc(db, 'bookings', formattedDate), face);
+          await setDoc(doc(db, 'bookings', formattedDate), JSON.parse(face));
         } catch (error) {
           console.error('Failed to save booking:', error);
         }
@@ -113,11 +111,11 @@ const Calendar = () => {
     touchData.current = null; // Clear the touch data
   };
 
-  // Handle drop event for drag-and-drop
+  // Handle drop event for drag-and-drop (desktop)
   const handleDrop = async (date, event) => {
     let faceData = null;
     if (event.detail) {
-      // Custom drop event from touch
+      // Custom drop event from pointer
       faceData = JSON.parse(event.detail);
     } else if (event.dataTransfer) {
       // Drop event from desktop drag
@@ -148,8 +146,8 @@ const Calendar = () => {
   return (
     <div
       className="calendar"
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
     >
       {/* Header with month navigation */}
       <div className="calendar-header">
