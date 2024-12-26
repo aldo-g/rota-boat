@@ -1,23 +1,46 @@
 .title-container {
-    display: flex;
-    justify-content: center; /* Center the title horizontally */
-    align-items: flex-start; /* Keep the title aligned at the top */
-    margin-top: 20px; /* Adjust the vertical spacing */
-  }
-  
-  .title-canvas {
-    display: block;
-    max-width: 90%; /* Responsive width for smaller screens */
-    max-height: auto; /* Maintain the aspect ratio */
-    background: transparent; /* Ensure background remains transparent */
-  }
-  
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  margin-top: 20px;
+}
+
+.title-canvas {
+  display: block;
+  max-width: 90%;
+  height: auto; /* Maintain the aspect ratio */
+  background: transparent;
+}
+
+text {
+  font-family: 'Bungee Shade', cursive;
+  font-size: 48px;
+  fill: red;
+  text-anchor: middle;
+  stroke: white;
+  stroke-width: 8px;
+  paint-order: stroke fill;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
   text {
-    font-family: 'Bungee Shade', cursive; /* Use bold, poster-style font */
-    font-size: 48px;
-    fill: red; /* Red fill for text */
-    text-anchor: middle;
-    stroke: white;
-    stroke-width: 8px;
-    paint-order: stroke fill;
+    font-size: 36px; /* Adjust font size for smaller screens */
+    stroke-width: 6px;
   }
+
+  .title-container {
+    margin-bottom: 470px;
+  }
+}
+
+@media (max-width: 480px) {
+  text {
+    font-size: 24px; /* Further reduce font size for very small screens */
+    stroke-width: 4px;
+  }
+
+  .title-container {
+    margin-bottom: 440px;
+  }
+}

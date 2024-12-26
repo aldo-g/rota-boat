@@ -1,9 +1,9 @@
 body {
   margin: 0;
-  font-family: 'Bungee Tint', cursive; /* Default font for other text */
+  font-family: 'Bungee Tint', cursive;
   background: url('/public/images/background.png') no-repeat center center fixed;
   background-size: cover;
-  overflow: hidden; /* Prevent scrolling */
+  overflow: hidden;
 }
 
 .app {
@@ -11,34 +11,66 @@ body {
   padding: 0;
   color: white;
   position: relative;
-  height: 100vh; /* Full screen height, no more than the viewport */
+  height: 100vh;
   display: flex;
   flex-direction: column;
-  justify-content: flex-start; /* Align items to the top */
-  align-items: center; /* Center content horizontally */
+  justify-content: flex-start;
+  align-items: center;
 }
-
 
 .boat-container {
   position: absolute;
-  bottom: 10%; /* Place the container at the bottom 20% of the page */
-  left: 50%; /* Center horizontally */
-  transform: translateX(-50%); /* Center the container */
-  z-index: 3; /* Ensure it's above other content */
-  width: 200px; /* Set the container width */
-  height: auto; /* Maintain aspect ratio */
+  bottom: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 3;
+  width: 200px;
+  height: auto;
 }
 
 .faces-container {
   position: absolute;
-  bottom: 20px; /* Adjust spacing from the bottom */
-  left: 50%; /* Center horizontally */
-  transform: translateX(-50%); /* Center alignment */
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
   gap: 10px;
   justify-content: center;
   padding: 10px;
-  background: rgba(255, 255, 255, 0.8); /* Optional: Background for visibility */
-  border-radius: 10px; /* Rounded edges */
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Optional: Shadow for aesthetics */
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .boat-container {
+    width: 150px;
+  }
+
+  .faces-container {
+    gap: 5px;
+    padding: 8px;
+    bottom: 10px;
+  }
+
+  .app {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .boat-container {
+    width: 100px;
+  }
+
+  .faces-container {
+    flex-wrap: wrap;
+    gap: 3px;
+    padding: 5px;
+  }
+
+  body {
+    font-size: 12px;
+  }
 }

@@ -6,29 +6,25 @@
   background: rgba(255, 255, 255, 0.539);
   border-radius: 10px;
   box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-  width: 90%;
-  max-width: 800px;
+  width: 85%;
+  max-width: 700px;
   position: absolute;
-  top: 60%;
+  top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   font-family: 'Bungee Shade', cursive;
   color: #2f4f4f;
   border: 3px solid black;
+  margin-bottom: 120px;
+  z-index: 2;
 }
 
 .calendar-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 5px;
-  grid-auto-rows: 1fr;
-  height: 300px;
   box-sizing: border-box;
-}
-
-.calendar-day.empty {
-  background: transparent;
-  border: none;
+  height: auto;
 }
 
 .calendar-day {
@@ -37,14 +33,26 @@
   border: 1px solid #ddd;
   border-radius: 5px;
   text-align: center;
-  padding: 8px;
+  padding: 10px;
   transition: background 0.3s, transform 0.3s;
   border: 3px solid black;
+  min-height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1em;
 }
+
 
 .calendar-day:hover {
   background: #ffefd5;
   transform: scale(1.03);
+}
+
+.calendar-day.drag-over {
+  background: #ffb347; /* Highlight color */
+  transform: scale(1.1); /* Slightly enlarge the day cell */
+  transition: background 0.1s ease, transform 0.1s ease;
 }
 
 .calendar-day.today {
@@ -59,9 +67,7 @@
 }
 
 .date-label {
-  position: absolute;
-  top: 5px;
-  left: 5px;
+  position: relative;
   font-size: 1.2em;
   font-weight: bold;
 }
@@ -84,9 +90,9 @@
   color: white;
   border: none;
   border-radius: 50%;
-  width: 10px;
-  height: 10px;
-  font-size: 7px;
+  width: 15px;
+  height: 15px;
+  font-size: 8px;
   font-weight: bold;
   display: flex;
   justify-content: center;
@@ -94,11 +100,6 @@
   cursor: pointer;
   transition: background 0.3s ease;
 }
-
-.cancel-button:hover {
-  background: darkred;
-}
-
 
 .cancel-button:hover {
   background: darkred;
@@ -161,4 +162,78 @@
 
 .calendar-header button:hover {
   background-color: #e55a50;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .calendar {
+    width: 80%;
+    padding: 15px;
+    margin-bottom: 150px;
+  }
+
+  .calendar-grid {
+    grid-template-columns: repeat(7, 1fr);
+  }
+
+  .calendar-day {
+    padding: 8px;
+    min-height: 35px; /* Slightly shorter for medium screens */
+    font-size: 0.9em;
+  }
+
+  .date-label {
+    font-size: 1em;
+  }
+
+  .booking-face {
+    width: 25px;
+    height: 25px;
+  }
+
+  .cancel-button {
+    width: 12px;
+    height: 12px;
+    font-size: 7px;
+  }
+}
+
+@media (max-width: 480px) {
+  .calendar-header {
+    font-size: 1.2rem;
+  }
+
+  .calendar-header .header-text {
+    padding: 3px 8px;
+    margin: 5px;
+  }
+
+  .calendar-day {
+    padding: 6px;
+    min-height: 30px; /* Further reduce height for smaller screens */
+    font-size: 0.8em;
+  }
+
+  .date-label {
+    font-size: 0.9em;
+  }
+
+  .booking-face {
+    width: 20px;
+    height: 20px;
+  }
+
+  .cancel-button {
+    width: 10px;
+    height: 10px;
+    font-size: 6px;
+  }
+}
+
+/* Narrower calendar for larger screens */
+@media (min-width: 1024px) {
+  .calendar {
+    width: 70%;
+    max-width: 600px;
+  }
 }

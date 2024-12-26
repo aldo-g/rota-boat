@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { collection, onSnapshot, setDoc, doc, deleteDoc } from 'firebase/firestore';
 import db from '../../firebaseConfig';
 import './Calendar.css';
@@ -8,6 +8,7 @@ const Calendar = () => {
   const [currentMonth, setCurrentMonth] = useState(today.getMonth());
   const [currentYear, setCurrentYear] = useState(today.getFullYear());
   const [bookedDays, setBookedDays] = useState({});
+  const touchData = useRef(null); // To store drag data for touch devices
 
   // Fetch real-time bookings from Firestore
   useEffect(() => {
@@ -58,18 +59,63 @@ const Calendar = () => {
     }
   };
 
+  const handleTouchStart = (event, face) => {
+    touchData.current = face;
+  };
+
+  const handleTouchMove = (event) => {
+    const touch = event.touches[0];
+    const target = document.elementFromPoint(touch.clientX, touch.clientY);
+
+    if (target && target.classList.contains('calendar-day')) {
+      target.classList.add('drag-over');
+    }
+  };
+
+  const handleTouchEnd = async (event) => {
+    const touch = event.changedTouches[0];
+    const target = document.elementFromPoint(touch.clientX, touch.clientY);
+
+    if (target && target.dataset.dropTarget === 'true') {
+      const formattedDate = target.getAttribute('data-date');
+      const face = touchData.current;
+
+      if (formattedDate && face) {
+        try {
+          await setDoc(doc(db, 'bookings', formattedDate), face);
+        } catch (error) {
+          console.error('Failed to save booking:', error);
+        }
+      }
+    }
+
+    // Remove drag-over class
+    document.querySelectorAll('.calendar-day.drag-over').forEach((el) => {
+      el.classList.remove('drag-over');
+    });
+
+    touchData.current = null; // Clear the touch data
+  };
+
   const handleDrop = async (formattedDate, event) => {
     try {
-      const face = JSON.parse(event.dataTransfer.getData('application/json'));
-      await setDoc(doc(db, 'bookings', formattedDate), face); // Add booking to Firestore
+      const face = JSON.parse(event.detail || event.dataTransfer.getData('application/json'));
+      await setDoc(doc(db, 'bookings', formattedDate), face);
     } catch (error) {
-      console.error('Failed to parse drag data:', error);
+      console.error('Failed to save booking:', error);
     }
+  };
+
+  const handleDragEnter = (e) => {
+    e.currentTarget.classList.add('drag-over');
+  };
+
+  const handleDragLeave = (e) => {
+    e.currentTarget.classList.remove('drag-over');
   };
 
   const handleCancelBooking = async (date) => {
     try {
-      // Delete the entire document from Firestore
       await deleteDoc(doc(db, 'bookings', date));
       setBookedDays((prev) => {
         const updated = { ...prev };
@@ -85,7 +131,6 @@ const Calendar = () => {
 
   return (
     <div className="calendar">
-      {/* Calendar Header */}
       <div className="calendar-header">
         <button onClick={handlePrevMonth}>&lt;</button>
         <span className="header-text">
@@ -97,7 +142,6 @@ const Calendar = () => {
         <button onClick={handleNextMonth}>&gt;</button>
       </div>
 
-      {/* Days of the Week */}
       <div className="calendar-days-of-week">
         {daysOfWeek.map((day) => (
           <div key={day} className="day-of-week">
@@ -106,7 +150,6 @@ const Calendar = () => {
         ))}
       </div>
 
-      {/* Calendar Grid */}
       <div className="calendar-grid">
         {days.map((day, index) => {
           const isPlaceholder = day.getMonth() !== currentMonth;
@@ -123,11 +166,12 @@ const Calendar = () => {
               className={`calendar-day ${isToday ? 'today' : ''} ${
                 booking ? 'booked' : ''
               } ${isPlaceholder ? 'placeholder' : ''}`}
-              onDrop={(e) => {
-                e.preventDefault();
-                handleDrop(formattedDate, e);
-              }}
+              data-drop-target={!isPlaceholder}
+              data-date={formattedDate}
               onDragOver={(e) => !isPlaceholder && e.preventDefault()}
+              onDragEnter={!isPlaceholder ? handleDragEnter : null}
+              onDragLeave={!isPlaceholder ? handleDragLeave : null}
+              onDrop={(e) => !isPlaceholder && handleDrop(formattedDate, e)}
             >
               <span className="date-label">{day.getDate()}</span>
               {!isPlaceholder && booking && (
