@@ -1,26 +1,36 @@
+// DraggableFaces.jsx
+
 import React, { useRef } from 'react';
 import './DraggableFaces.css';
 
 const DraggableFaces = ({ faces }) => {
-  const dragRef = useRef(null);
+  const dragDataRef = useRef(null);
   const previewRef = useRef(null);
 
-  const handleDragStart = (event, face) => {
-    const dragData = JSON.stringify(face);
-    event.dataTransfer?.setData('application/json', dragData); // For desktop
-    dragRef.current = dragData;
-
-    // Add the drag preview element
-    const imgPreview = document.createElement('img');
-    imgPreview.src = face.img;
-    imgPreview.className = 'drag-preview';
-    document.body.appendChild(imgPreview);
-    previewRef.current = imgPreview;
-
-    // Update preview position
-    event.dataTransfer.setDragImage(imgPreview, 25, 25);
+  // Helper function to create a preview image
+  const createPreview = (src, x, y) => {
+    const img = document.createElement('img');
+    img.src = src;
+    img.className = 'drag-preview';
+    img.style.left = `${x}px`;
+    img.style.top = `${y}px`;
+    document.body.appendChild(img);
+    return img;
   };
 
+  // Handler for drag start (desktop)
+  const handleDragStart = (event, face) => {
+    const dragData = JSON.stringify(face);
+    event.dataTransfer?.setData('application/json', dragData);
+    dragDataRef.current = dragData;
+
+    // Create and set the drag image
+    const preview = createPreview(face.img, event.clientX, event.clientY);
+    previewRef.current = preview;
+    event.dataTransfer?.setDragImage(preview, 25, 25);
+  };
+
+  // Handler for drag movement (desktop)
   const handleDrag = (event) => {
     if (previewRef.current) {
       previewRef.current.style.left = `${event.clientX}px`;
@@ -28,32 +38,26 @@ const DraggableFaces = ({ faces }) => {
     }
   };
 
+  // Handler for drag end (desktop)
   const handleDragEnd = () => {
-    // Remove the drag preview
-    if (previewRef.current) {
-      previewRef.current.remove();
-      previewRef.current = null;
-    }
+    previewRef.current?.remove();
+    previewRef.current = null;
+    dragDataRef.current = null;
   };
 
+  // Handler for touch start (mobile)
   const handleTouchStart = (event, face) => {
-    dragRef.current = JSON.stringify(face);
-
-    // Create a preview element for touch
-    const touchPreview = document.createElement('img');
-    touchPreview.src = face.img;
-    touchPreview.className = 'drag-preview';
-    touchPreview.style.position = 'absolute';
-    touchPreview.style.zIndex = '1000';
-    touchPreview.style.width = '50px';
-    document.body.appendChild(touchPreview);
-    previewRef.current = touchPreview;
-
+    event.preventDefault(); // Prevent default touch actions
     const touch = event.touches[0];
-    touchPreview.style.left = `${touch.clientX}px`;
-    touchPreview.style.top = `${touch.clientY}px`;
+    const dragData = JSON.stringify(face);
+    dragDataRef.current = dragData;
+
+    // Create the touch preview
+    const preview = createPreview(face.img, touch.clientX, touch.clientY);
+    previewRef.current = preview;
   };
 
+  // Handler for touch movement (mobile)
   const handleTouchMove = (event) => {
     const touch = event.touches[0];
     if (previewRef.current) {
@@ -62,24 +66,21 @@ const DraggableFaces = ({ faces }) => {
     }
   };
 
+  // Handler for touch end (mobile)
   const handleTouchEnd = (event) => {
     const touch = event.changedTouches[0];
     const target = document.elementFromPoint(touch.clientX, touch.clientY);
+    console.log('Touch End:', touch.clientX, touch.clientY, target);
 
-    // Dispatch drop event
-    if (target && target.dataset.dropTarget === 'true') {
-      const dragData = dragRef.current;
-      const dropEvent = new CustomEvent('drop', { detail: dragData, bubbles: true });
+    if (target?.dataset.dropTarget === 'true' && dragDataRef.current) {
+      const dropEvent = new CustomEvent('drop', { detail: dragDataRef.current, bubbles: true });
       target.dispatchEvent(dropEvent);
     }
 
-    // Remove the drag preview
-    if (previewRef.current) {
-      previewRef.current.remove();
-      previewRef.current = null;
-    }
-
-    dragRef.current = null;
+    // Clean up the preview
+    previewRef.current?.remove();
+    previewRef.current = null;
+    dragDataRef.current = null;
   };
 
   return (
@@ -97,6 +98,9 @@ const DraggableFaces = ({ faces }) => {
           onTouchStart={(e) => handleTouchStart(e, face)}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
+          tabIndex="0" // For accessibility
+          aria-grabbed="false"
+          role="button"
         />
       ))}
     </div>

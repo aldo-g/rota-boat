@@ -1,80 +1,95 @@
-import React, { useState, useEffect, useRef } from 'react';
+// Calendar.jsx
+
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { collection, onSnapshot, setDoc, doc, deleteDoc } from 'firebase/firestore';
 import db from '../../firebaseConfig';
 import './Calendar.css';
 
 const Calendar = () => {
   const today = new Date();
-  const [currentMonth, setCurrentMonth] = useState(today.getMonth());
-  const [currentYear, setCurrentYear] = useState(today.getFullYear());
+  const [currentDate, setCurrentDate] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
   const [bookedDays, setBookedDays] = useState({});
-  const touchData = useRef(null); // To store drag data for touch devices
+  const touchData = useRef(null);
+  const currentDragOver = useRef(null); // Track the current drag-over cell
 
-  // Fetch real-time bookings from Firestore
+  // Real-time bookings listener
   useEffect(() => {
     const unsubscribe = onSnapshot(collection(db, 'bookings'), (snapshot) => {
-      const bookings = {};
-      snapshot.forEach((doc) => {
-        bookings[doc.id] = doc.data();
-      });
+      const bookings = snapshot.docs.reduce((acc, doc) => {
+        acc[doc.id] = doc.data();
+        return acc;
+      }, {});
       setBookedDays(bookings);
     });
-    return () => unsubscribe();
+    return unsubscribe;
   }, []);
 
-  const daysInMonth = (month, year) => new Date(year, month + 1, 0).getDate();
-  const firstDayOfMonth = (month, year) => new Date(year, month, 1).getDay();
+  // Helper functions to get days
+  const getDaysInMonth = (date) => new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+  const getFirstDayOfMonth = (date) => new Date(date.getFullYear(), date.getMonth(), 1).getDay();
 
-  const generateDays = (month, year) => {
-    const numDays = daysInMonth(month, year);
-    const firstDay = firstDayOfMonth(month, year);
-
-    const days = Array.from({ length: numDays }, (_, i) => new Date(year, month, i + 1));
-
-    const previousMonthDays = new Date(year, month, 0).getDate();
+  // Generate calendar days including placeholders for previous month
+  const generateCalendarDays = () => {
+    const numDays = getDaysInMonth(currentDate);
+    const firstDay = getFirstDayOfMonth(currentDate);
+    const days = Array.from({ length: numDays }, (_, i) => new Date(currentDate.getFullYear(), currentDate.getMonth(), i + 1));
+    const prevMonthLastDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 0).getDate();
     const emptyDays = Array.from({ length: firstDay }, (_, i) =>
-      new Date(year, month - 1, previousMonthDays - firstDay + i + 1)
+      new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, prevMonthLastDate - firstDay + i + 1)
     );
-
     return [...emptyDays, ...days];
   };
 
-  const days = generateDays(currentMonth, currentYear);
-
-  const handleNextMonth = () => {
-    if (currentMonth === 11) {
-      setCurrentMonth(0);
-      setCurrentYear((prevYear) => prevYear + 1);
-    } else {
-      setCurrentMonth((prevMonth) => prevMonth + 1);
-    }
+  // Change month by delta (-1 for previous, +1 for next)
+  const changeMonth = (delta) => {
+    setCurrentDate(prev => new Date(prev.getFullYear(), prev.getMonth() + delta, 1));
   };
 
-  const handlePrevMonth = () => {
-    if (currentMonth === 0) {
-      setCurrentMonth(11);
-      setCurrentYear((prevYear) => prevYear - 1);
-    } else {
-      setCurrentMonth((prevMonth) => prevMonth - 1);
-    }
+  // Throttling function to limit the rate at which a function can fire.
+  const throttle = (func, limit) => {
+    let inThrottle;
+    return function(...args) {
+      if (!inThrottle) {
+        func.apply(this, args);
+        inThrottle = true;
+        setTimeout(() => (inThrottle = false), limit);
+      }
+    };
   };
 
-  const handleTouchStart = (event, face) => {
-    touchData.current = face;
-  };
+  // Handle touch events for dragging
+  const handleTouchMove = useCallback(
+    throttle((event) => {
+      const touch = event.touches[0];
+      const target = document.elementFromPoint(touch.clientX, touch.clientY);
+      console.log('Touch Move:', touch.clientX, touch.clientY, target);
 
-  const handleTouchMove = (event) => {
-    const touch = event.touches[0];
-    const target = document.elementFromPoint(touch.clientX, touch.clientY);
+      if (target && target.classList.contains('calendar-day')) {
+        // Remove drag-over from previous cell
+        if (currentDragOver.current && currentDragOver.current !== target) {
+          currentDragOver.current.classList.remove('drag-over');
+        }
 
-    if (target && target.classList.contains('calendar-day')) {
-      target.classList.add('drag-over');
-    }
-  };
+        // Add drag-over to the new target
+        if (currentDragOver.current !== target) {
+          target.classList.add('drag-over');
+          currentDragOver.current = target;
+        }
+      } else {
+        // If not over a calendar day, remove drag-over from previous cell
+        if (currentDragOver.current) {
+          currentDragOver.current.classList.remove('drag-over');
+          currentDragOver.current = null;
+        }
+      }
+    }, 100),
+    []
+  );
 
   const handleTouchEnd = async (event) => {
     const touch = event.changedTouches[0];
     const target = document.elementFromPoint(touch.clientX, touch.clientY);
+    console.log('Touch End:', touch.clientX, touch.clientY, target);
 
     if (target && target.dataset.dropTarget === 'true') {
       const formattedDate = target.getAttribute('data-date');
@@ -89,92 +104,90 @@ const Calendar = () => {
       }
     }
 
-    // Remove drag-over class
-    document.querySelectorAll('.calendar-day.drag-over').forEach((el) => {
-      el.classList.remove('drag-over');
-    });
+    // Remove drag-over class from any cell
+    if (currentDragOver.current) {
+      currentDragOver.current.classList.remove('drag-over');
+      currentDragOver.current = null;
+    }
 
     touchData.current = null; // Clear the touch data
   };
 
-  const handleDrop = async (formattedDate, event) => {
-    try {
-      const face = JSON.parse(event.detail || event.dataTransfer.getData('application/json'));
-      await setDoc(doc(db, 'bookings', formattedDate), face);
-    } catch (error) {
-      console.error('Failed to save booking:', error);
+  // Handle drop event for drag-and-drop
+  const handleDrop = async (date, event) => {
+    let faceData = null;
+    if (event.detail) {
+      // Custom drop event from touch
+      faceData = JSON.parse(event.detail);
+    } else if (event.dataTransfer) {
+      // Drop event from desktop drag
+      faceData = JSON.parse(event.dataTransfer.getData('application/json'));
+    }
+
+    if (faceData) {
+      try {
+        await setDoc(doc(db, 'bookings', date), faceData);
+      } catch (error) {
+        console.error('Failed to save booking:', error);
+      }
     }
   };
 
-  const handleDragEnter = (e) => {
-    e.currentTarget.classList.add('drag-over');
-  };
-
-  const handleDragLeave = (e) => {
-    e.currentTarget.classList.remove('drag-over');
-  };
-
+  // Cancel a booking
   const handleCancelBooking = async (date) => {
     try {
       await deleteDoc(doc(db, 'bookings', date));
-      setBookedDays((prev) => {
-        const updated = { ...prev };
-        delete updated[date];
-        return updated;
-      });
     } catch (error) {
       console.error('Failed to cancel booking:', error);
     }
   };
 
   const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const calendarDays = generateCalendarDays();
 
   return (
-    <div className="calendar">
+    <div
+      className="calendar"
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+    >
+      {/* Header with month navigation */}
       <div className="calendar-header">
-        <button onClick={handlePrevMonth}>&lt;</button>
+        <button onClick={() => changeMonth(-1)}>&lt;</button>
         <span className="header-text">
-          {new Date(currentYear, currentMonth).toLocaleString('default', {
-            month: 'long',
-            year: 'numeric',
-          })}
+          {currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })}
         </span>
-        <button onClick={handleNextMonth}>&gt;</button>
+        <button onClick={() => changeMonth(1)}>&gt;</button>
       </div>
 
+      {/* Days of the week */}
       <div className="calendar-days-of-week">
-        {daysOfWeek.map((day) => (
-          <div key={day} className="day-of-week">
-            {day}
-          </div>
+        {daysOfWeek.map(day => (
+          <div key={day} className="day-of-week">{day}</div>
         ))}
       </div>
 
+      {/* Calendar grid */}
       <div className="calendar-grid">
-        {days.map((day, index) => {
-          const isPlaceholder = day.getMonth() !== currentMonth;
+        {calendarDays.map(day => {
+          const isCurrentMonth = day.getMonth() === currentDate.getMonth();
           const formattedDate = day.toISOString().split('T')[0];
-          const isToday =
-            day.getDate() === today.getDate() &&
-            day.getMonth() === today.getMonth() &&
-            day.getFullYear() === today.getFullYear();
+          const isToday = day.toDateString() === today.toDateString();
           const booking = bookedDays[formattedDate];
 
           return (
             <div
-              key={`${formattedDate}-${index}`}
-              className={`calendar-day ${isToday ? 'today' : ''} ${
-                booking ? 'booked' : ''
-              } ${isPlaceholder ? 'placeholder' : ''}`}
-              data-drop-target={!isPlaceholder}
+              key={`${formattedDate}-${day.getDate()}`} // Ensure unique key
+              className={`calendar-day ${isToday ? 'today' : ''} ${booking ? 'booked' : ''} ${!isCurrentMonth ? 'placeholder' : ''}`}
+              data-drop-target={isCurrentMonth}
               data-date={formattedDate}
-              onDragOver={(e) => !isPlaceholder && e.preventDefault()}
-              onDragEnter={!isPlaceholder ? handleDragEnter : null}
-              onDragLeave={!isPlaceholder ? handleDragLeave : null}
-              onDrop={(e) => !isPlaceholder && handleDrop(formattedDate, e)}
+              onDragOver={isCurrentMonth ? (e) => e.preventDefault() : null}
+              onDragEnter={isCurrentMonth ? (e) => e.currentTarget.classList.add('drag-over') : null}
+              onDragLeave={isCurrentMonth ? (e) => e.currentTarget.classList.remove('drag-over') : null}
+              onDrop={isCurrentMonth ? (e) => handleDrop(formattedDate, e) : null}
             >
               <span className="date-label">{day.getDate()}</span>
-              {!isPlaceholder && booking && (
+              {isCurrentMonth && booking && (
                 <>
                   <img
                     src={booking.img}

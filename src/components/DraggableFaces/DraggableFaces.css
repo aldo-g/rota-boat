@@ -1,14 +1,36 @@
-.faces {
+/* Container for draggable faces */
+.faces-container,
+.faces-bar {
   display: flex;
-  gap: 10px;
   justify-content: center;
+  gap: 10px; /* Default gap */
+}
+
+/* Specific styles for faces-container */
+.faces-container {
   margin: 20px 0;
 }
 
-.face {
+/* Styles for the fixed faces bar */
+.faces-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  padding: 10px 20px;
+  gap: 15px;
+  z-index: 100;
+}
+
+/* Common styles for face images and drag previews */
+.face,
+.drag-preview {
   width: 50px;
   height: 50px;
   border-radius: 50%;
+}
+
+.face {
   cursor: grab;
   transition: transform 0.2s ease;
 }
@@ -18,33 +40,19 @@
   transform: scale(1.1);
 }
 
-.faces-bar {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  padding: 10px 20px;
-  display: flex;
-  justify-content: center;
-  gap: 15px;
-  z-index: 100;
-}
-
-/* Drag Preview Styling */
 .drag-preview {
   position: absolute;
   pointer-events: none;
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  transform: scale(1.1); /* Slightly enlarged for visual feedback */
+  transform: scale(1.1) translate(-50%, -50%); /* Center the preview on cursor/touch */
   z-index: 1000; /* Ensure it appears above all other elements */
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2); /* Optional shadow for depth */
+  opacity: 0.8; /* Slight transparency for better visual feedback */
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
-  .face {
+  .face,
+  .drag-preview {
     width: 40px;
     height: 40px;
   }
@@ -53,15 +61,11 @@
     padding: 8px 15px;
     gap: 10px;
   }
-
-  .drag-preview {
-    width: 40px;
-    height: 40px;
-  }
 }
 
 @media (max-width: 480px) {
-  .face {
+  .face,
+  .drag-preview {
     width: 30px;
     height: 30px;
   }
@@ -70,9 +74,8 @@
     padding: 5px 10px;
     gap: 8px;
   }
+}
 
-  .drag-preview {
-    width: 30px;
-    height: 30px;
-  }
+.face:hover {
+  transform: scale(1.05);
 }
